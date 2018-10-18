@@ -1,21 +1,22 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Game1.Physics;
 
 namespace Game2._0
 {
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
-    public class Game1 : Game
+    class Game1 : Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        private AnimatedSprite animatedSprite1;
-        private AnimatedSprite animatedSprite2;
+        public Player player1;
+        GroundTile ground;
 
         private SpriteFont font;
-        private int score = 0;
+        private int gameTimer = 0;
 
         public Game1()
         {
@@ -32,7 +33,7 @@ namespace Game2._0
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
+            World.groundTilesList = new System.Collections.Generic.List<GroundTile>();
             base.Initialize();
         }
 
@@ -46,9 +47,11 @@ namespace Game2._0
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             font = Content.Load<SpriteFont>("Score");
-            Texture2D texture = Content.Load<Texture2D>("SmileyWalk");
-            animatedSprite1 = new AnimatedSprite(texture, 4, 4, new Vector2(50, 300));
-            animatedSprite2 = new AnimatedSprite(texture, 4, 4, new Vector2(50, 400));
+            Texture2D playerTexture = Content.Load<Texture2D>("SmileyWalk");
+            Texture2D groundTile = Content.Load<Texture2D>("groundTile");
+            player1 = new Player(new Vector2(100,100),playerTexture,5);
+            ground = new GroundTile(new Point(100, 300), new Point(50, 50), groundTile);
+            World.groundTilesList.Add(ground);
             // TODO: use this.Content to load your game content here
         }
 
@@ -69,25 +72,24 @@ namespace Game2._0
         protected override void Update(GameTime gameTime)
         {
             //if (animatedSprite1.CheckFinish() || animatedSprite1.CheckFinish())
-            score++;
+            gameTimer++;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                animatedSprite1.Move(1);
-                animatedSprite1.Update();
+                player1.Move(new Vector2(1,0));
             }
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                animatedSprite2.Move(1);
-                animatedSprite2.Update();
+                //animatedSprite2.Move(1);
+                //animatedSprite2.Update();
             }
 
             // TODO: Add your update logic here
-            
-            
+
+            player1.PlayerUpdate(gameTime);
 
             base.Update(gameTime);
         }
@@ -102,11 +104,13 @@ namespace Game2._0
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
-            spriteBatch.DrawString(font, "Time: " + score, new Vector2(50, 50), Color.Black);
+            spriteBatch.DrawString(font, "Time: " + gameTimer, new Vector2(50, 50), Color.Black);
             spriteBatch.End();
 
-            animatedSprite1.Draw(spriteBatch);
-            animatedSprite2.Draw(spriteBatch);
+            player1.DrawUpdate(spriteBatch);
+            ground.Draw(spriteBatch);
+            //animatedSprite1.Draw(spriteBatch);
+            //animatedSprite2.Draw(spriteBatch);
 
             base.Draw(gameTime);
         }

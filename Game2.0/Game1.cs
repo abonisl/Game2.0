@@ -11,6 +11,11 @@ namespace Game2._0
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        private AnimatedSprite animatedSprite1;
+        private AnimatedSprite animatedSprite2;
+
+        private SpriteFont font;
+        private int score = 0;
 
         public Game1()
         {
@@ -40,6 +45,10 @@ namespace Game2._0
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            font = Content.Load<SpriteFont>("Score");
+            Texture2D texture = Content.Load<Texture2D>("SmileyWalk");
+            animatedSprite1 = new AnimatedSprite(texture, 4, 4, new Vector2(50, 300));
+            animatedSprite2 = new AnimatedSprite(texture, 4, 4, new Vector2(50, 400));
             // TODO: use this.Content to load your game content here
         }
 
@@ -59,10 +68,26 @@ namespace Game2._0
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            //if (animatedSprite1.CheckFinish() || animatedSprite1.CheckFinish())
+            score++;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            if (Keyboard.GetState().IsKeyDown(Keys.A))
+            {
+                animatedSprite1.Move(1);
+                animatedSprite1.Update();
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.D))
+            {
+                animatedSprite2.Move(1);
+                animatedSprite2.Update();
+            }
+
             // TODO: Add your update logic here
+            
+            
 
             base.Update(gameTime);
         }
@@ -76,6 +101,12 @@ namespace Game2._0
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
+            spriteBatch.Begin();
+            spriteBatch.DrawString(font, "Time: " + score, new Vector2(50, 50), Color.Black);
+            spriteBatch.End();
+
+            animatedSprite1.Draw(spriteBatch);
+            animatedSprite2.Draw(spriteBatch);
 
             base.Draw(gameTime);
         }

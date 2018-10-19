@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
+using Lidgren.Network;
 
 namespace Game2._0
 {
@@ -15,8 +16,9 @@ namespace Game2._0
         private int currentFrame;
         private int totalFrames;
         public Vector2 currentPos;
+        public NetConnection con;
 
-        public AnimatedSprite(Texture2D texture, int rows, int columns, Vector2 location)
+        public AnimatedSprite(Texture2D texture, int rows, int columns, Vector2 location, NetConnection conn)
         {
             Texture = texture;
             Rows = rows;
@@ -24,6 +26,7 @@ namespace Game2._0
             currentFrame = 0;
             totalFrames = Rows * Columns;
             currentPos = location;
+            con = conn;
         }
 
         public void Move(int speed)

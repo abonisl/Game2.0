@@ -18,7 +18,7 @@ namespace Game2._0
         {
             this.position = position;
             this.textureImage = textureImage;
-            collisionBox = new Rectangle(position, size);
+            collisionBox = new Rectangle(new Point(position.X, position.Y + size.Y), size);
         }
 
         public void Draw(SpriteBatch spriteBatch)

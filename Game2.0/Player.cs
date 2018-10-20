@@ -14,9 +14,16 @@ namespace Game2._0
     {
         // Collision
         Rectangle collisionBox;
+        List<GroundTile> collisionList;
         // Movement
         Vector2 position;
         float moveSpeed;
+        // Falling / jumping
+        public bool isFalling = true;
+        public bool isJumping = false;
+        int jumpSpeed = 0;
+        int jumpHeight = 0;
+        int jumpPossibleHeight = 100;
         // Texture
         Texture2D textureImage;
         // Animation
@@ -29,16 +36,25 @@ namespace Game2._0
         private int msPerFrame = 50;
         public Player(Vector2 startingPosition, Texture2D textureImage, float moveSpeed)
         {
+            collisionList = new List<GroundTile>();
             this.position = startingPosition;
-            collisionBox = new Rectangle((int)position.X, (int)position.Y, 100, 100);
+            this.collisionBox = new Rectangle((int)position.X, (int)position.Y, 100, 100);
             this.textureImage = textureImage;
             this.moveSpeed = moveSpeed;
-            totalFrames = rows * columns;
+            this.totalFrames = rows * columns;
         }
 
         public void Move(Vector2 Direction)
         {
             position += Direction * moveSpeed;
+        }
+
+        public void Jump(int jumpSpeed, int jumpHeight)
+        {
+            jumpPossibleHeight = (int)position.Y - jumpHeight;
+            this.jumpSpeed = jumpSpeed;
+            isJumping = true;
+            isFalling = false;
         }
 
         public void DrawUpdate(SpriteBatch spriteBatch)
@@ -60,8 +76,24 @@ namespace Game2._0
         {
             // Collision box position update
             collisionBox.Location = new Point((int)position.X, (int)position.Y);
+
             // Movement and enviroment effects
-            position += World.Gravity;
+            if(isFalling && !isJumping)
+            {
+                position += World.Gravity;
+            }
+
+            if(!isFalling && isJumping)
+            {
+                position -= new Vector2(0, 1) * jumpSpeed;
+                if(jumpPossibleHeight > position.Y) // player is above max jump height
+                {
+                    Console.WriteLine("Jump stop trigger");
+                    isJumping = false;
+                    isFalling = true;
+                }
+            }
+
             foreach(GroundTile g in World.groundTilesList)
             {
                 // if true deal with collision
@@ -70,27 +102,32 @@ namespace Game2._0
                     //player is colliding with top side
                     if (collisionBox.Bottom > g.collisionBox.Top && collisionBox.Bottom < g.collisionBox.Bottom)
                     {
-                        position.Y = g.collisionBox.Top - 50;
-                        return;
+                        isFalling = false;
+                        collisionList.Add(g);
                     }
-                    //// player is colliding with down side
-                    //if (collisionBox.Top < g.collisionBox.Bottom && collisionBox.Top > g.collisionBox.Top)
-                    //{
-                    //    position.Y = collidingSprite.position.Y + GetFrameSize.Y;
-                    //    return;
-                    //}
-                    //// player is colliding with right side
-                    //if (collisionBox.Left > g.collisionBox.Right && collisionBox.Left < g.collisionBox.Left)
-                    //{
-                    //    position.X = collidingSprite.position.X - GetFrameSize.X;
-                    //    return;
-                    //}
-                    //// player is colliding with left side
-                    //if (collisionBox.Right < g.collisionBox.Left && collisionBox.Right > g.collisionBox.Right)
-                    //{
-                    //    position.X = collidingSprite.position.X + collidingSprite.GetFrameSize.X;
-                    //    return;
-                    //}
+                    // player is colliding with down side
+                    if (collisionBox.Top < g.collisionBox.Bottom && collisionBox.Top > g.collisionBox.Top)
+                    {
+                        collisionList.Add(g);
+                    }
+                    // player is colliding with right side
+                    if (collisionBox.Left > g.collisionBox.Right && collisionBox.Left < g.collisionBox.Left)
+                    {
+                        collisionList.Add(g);
+                    }
+                    // player is colliding with left side
+                    if (collisionBox.Right < g.collisionBox.Left && collisionBox.Right > g.collisionBox.Right)
+                    {
+                        collisionList.Add(g);
+                    }
+                }
+                else if(collisionList.Contains(g)) // collision is over remove it from the list
+                {
+                    collisionList.Remove(g);
+                }
+                else if(!isJumping && collisionList.Count == 0) // no collision, fall down
+                {
+                        isFalling = true;
                 }
             }
 

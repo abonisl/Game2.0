@@ -13,7 +13,7 @@ namespace Game2._0
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         public Player player1;
-        GroundTile ground;
+        //GroundTile ground;
 
         private SpriteFont font;
         private int gameTimer = 0;
@@ -50,8 +50,11 @@ namespace Game2._0
             Texture2D playerTexture = Content.Load<Texture2D>("SmileyWalk");
             Texture2D groundTile = Content.Load<Texture2D>("groundTile");
             player1 = new Player(new Vector2(100,100),playerTexture,5);
-            ground = new GroundTile(new Point(100, 300), new Point(50, 50), groundTile);
-            World.groundTilesList.Add(ground);
+            for(int i = 0; i < 20; ++i)
+            {
+                GroundTile ground = new GroundTile(new Point(50*i, 300), new Point(50, 50), groundTile);
+                World.groundTilesList.Add(ground);
+            }
             // TODO: use this.Content to load your game content here
         }
 
@@ -81,10 +84,9 @@ namespace Game2._0
             {
                 player1.Move(new Vector2(1,0));
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
+            if (Keyboard.GetState().IsKeyDown(Keys.W) && !player1.isJumping && !player1.isFalling)
             {
-                //animatedSprite2.Move(1);
-                //animatedSprite2.Update();
+                player1.Jump(10, 50);
             }
 
             // TODO: Add your update logic here
@@ -108,7 +110,10 @@ namespace Game2._0
             spriteBatch.End();
 
             player1.DrawUpdate(spriteBatch);
-            ground.Draw(spriteBatch);
+            foreach(GroundTile g in World.groundTilesList)
+            {
+                g.Draw(spriteBatch);
+            }
             //animatedSprite1.Draw(spriteBatch);
             //animatedSprite2.Draw(spriteBatch);
 

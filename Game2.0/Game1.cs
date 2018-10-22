@@ -76,7 +76,7 @@ namespace Game2._0
             JoinGameButton = Content.Load<Texture2D>("JoinGame");
 
             font = Content.Load<SpriteFont>("Score");
-            texture = Content.Load<Texture2D>("SmileyWalk");
+            texture = Content.Load<Texture2D>("runner2");
             // TODO: use this.Content to load your game content here
         }
 
@@ -110,7 +110,7 @@ namespace Game2._0
                     server.Start();
 
                     //animatedSprite1 = new AnimatedSprite(texture, 4, 4, new Vector2(50, 300), null);
-                    AnimatedSprite animatedSprite = new AnimatedSprite(texture, 4, 4, new Vector2(50, 400), null);
+                    AnimatedSprite animatedSprite = new AnimatedSprite(texture, 2, 7, new Vector2(50, 400), null);
                     players.Add(animatedSprite);
                 }
                 else if ((recJoinGameButton.Intersects(Cursor)))
@@ -139,7 +139,7 @@ namespace Game2._0
                             switch (message.SenderConnection.Status)
                             {
                                 case NetConnectionStatus.Connected:
-                                    AnimatedSprite animatedSprite = new AnimatedSprite(texture, 4, 4, new Vector2(50, 350 - connected_players*50), message.SenderConnection);
+                                    AnimatedSprite animatedSprite = new AnimatedSprite(texture, 2, 7, new Vector2(50, 330 - connected_players*70), message.SenderConnection);
                                     players.Add(animatedSprite);
                                     connected_players++;
                                     if (server.Connections.Count > 0)
@@ -212,7 +212,16 @@ namespace Game2._0
                             // handle custom messages
                             var data = message.ReadString();
                             if (data == "G2")
+                            {
+                                foreach (AnimatedSprite player in players)
+                                {
+                                    player.currentPos.X = 50;
+                                }
+                                score = 1000;
                                 gamestate = 2;
+                            }
+                            else if (data == "G4")
+                                gamestate = 4;
                             else if (data[0].ToString() == "N")
                             {
                                 connected_players = int.Parse(Regex.Replace(data, @"\D", ""));
@@ -221,18 +230,18 @@ namespace Game2._0
                                 {
                                     for (int i = 0; i <= connected_players; i++)
                                     {
-                                        AnimatedSprite animatedSprite = new AnimatedSprite(texture, 4, 4, new Vector2(50, 400 - i * 50), null);
+                                        AnimatedSprite animatedSprite = new AnimatedSprite(texture, 2, 7, new Vector2(50, 400 - i * 70), null);
                                         players.Add(animatedSprite);
                                     }
                                     my_player = connected_players;
                                 }
                                 else
                                 {
-                                    AnimatedSprite animatedSprite = new AnimatedSprite(texture, 4, 4, new Vector2(50, 400 - connected_players * 50), null);
+                                    AnimatedSprite animatedSprite = new AnimatedSprite(texture, 2, 7, new Vector2(50, 400 - connected_players * 70), null);
                                     players.Add(animatedSprite);
                                 }
                             }
-                            else if(data[0].ToString() == "P")
+                            else if (data[0].ToString() == "P")
                             {
                                 string[] data2 = data.Split(' ');
                                 var j = 0;
@@ -242,7 +251,7 @@ namespace Game2._0
                                         continue;
                                     else
                                     {
-                                        if(j != my_player)
+                                        if (j != my_player)
                                             players[j].currentPos.X = int.Parse(dat);
                                         j++;
                                     }
@@ -298,20 +307,66 @@ namespace Game2._0
                     if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                         Exit();
 
-                    if (Keyboard.GetState().IsKeyDown(Keys.D))
+                    if (Keyboard.GetState().IsKeyDown(Keys.D) || Keyboard.GetState().IsKeyDown(Keys.A))
                     {
-                        players[my_player].Move(1);
+                        if(players[my_player].but_d && Keyboard.GetState().IsKeyDown(Keys.A))
+                        {
+                            players[my_player].but_d = false;
+                            players[my_player].Move(2);
+                        }
+                        else if (!players[my_player].but_d && Keyboard.GetState().IsKeyDown(Keys.D))
+                        {
+                            players[my_player].but_d = true;
+                            players[my_player].Move(2);
+                        }
+                        else
+                        {
+                            players[my_player].Move(0);
+                        }
+
+                  
                         //animatedSprite1.Update();
-                        if(!host)
+                        if (!host)
                         {
                             NetOutgoingMessage sendMsg = client.CreateMessage();
                             sendMsg.Write("POS " + my_player + " " + players[my_player].currentPos.X);
                             client.SendMessage(sendMsg, NetDeliveryMethod.ReliableOrdered);
                         }
                     }
+
                     foreach (AnimatedSprite player in players)
                     {
                         player.Update();
+                        if (host && player.currentPos.X > 740)
+                        {
+                            gamestate = 4;
+                            if (server.Connections.Count > 0)
+                            {
+                                NetOutgoingMessage sendMsg = server.CreateMessage();
+                                sendMsg.Write("G4");
+                                server.SendMessage(sendMsg, server.Connections, NetDeliveryMethod.ReliableOrdered, 0);
+                            }
+                        }
+                    }
+                }
+                else if (gamestate == 4)
+                {
+                    if (host && Keyboard.GetState().IsKeyDown(Keys.Space))
+                    {
+                        foreach (AnimatedSprite player in players)
+                        {
+                            player.currentPos.X = 50;
+                        }
+
+                        score = 1000;
+                        if (server.Connections.Count > 0)
+                        {
+                            NetOutgoingMessage sendMsg = server.CreateMessage();
+                            sendMsg.Write("G2");
+                            server.SendMessage(sendMsg, server.Connections, NetDeliveryMethod.ReliableOrdered, 0);
+                        }
+                        gamestate = 2;
+                        //wyslac wiadomosc do graczy
                     }
                 }
             }

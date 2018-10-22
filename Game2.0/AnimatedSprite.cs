@@ -13,8 +13,11 @@ namespace Game2._0
         public Texture2D Texture { get; set; }
         public int Rows { get; set; }
         public int Columns { get; set; }
-        private int currentFrame;
+        private float currentFrame;
         private int totalFrames;
+        public float speed;
+        private int last_time_run;
+        public bool but_d;
         public Vector2 currentPos;
         public NetConnection con;
 
@@ -27,25 +30,24 @@ namespace Game2._0
             totalFrames = Rows * Columns;
             currentPos = location;
             con = conn;
+            last_time_run = 0;
+            but_d = false;
         }
 
         public void Move(int speed)
         {
+            this.speed = speed;
             currentPos.X += speed;
-        }
-
-        public bool CheckFinish()
-        {
-            if (currentPos.X > 500)
-                return true;
-            return false;
         }
 
         public void Update()
         {
-            currentFrame++;
-            if (currentFrame == totalFrames)
-                currentFrame = 0;
+            if (speed > 0)
+            {
+                currentFrame += speed;
+                if (currentFrame == totalFrames)
+                    currentFrame = 0;
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -53,7 +55,7 @@ namespace Game2._0
             int width = Texture.Width / Columns;
             int height = Texture.Height / Rows;
             int row = (int)((float)currentFrame / (float)Columns);
-            int column = currentFrame % Columns;
+            int column = ((int)currentFrame) % Columns;
 
             Rectangle sourceRectangle = new Rectangle(width * column, height * row, width, height);
             Rectangle destinationRectangle = new Rectangle((int)currentPos.X, (int)currentPos.Y, width, height);
